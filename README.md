@@ -1,161 +1,95 @@
-# Historical Display Generator
+# Генератор исторического дисплея
 
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+Приложение с графическим интерфейсом для создания информационных плакатов с историческими событиями для 4-стороннего LED-экрана.
 
-Desktop application for generating historical event posters for 4-sided LED displays. 520x1872px each side
+## Возможности
 
-## Features
+- Графический интерфейс для выбора даты и событий
+- Загрузка исторических событий с Wikipedia API (до 2000 года)
+- Предпросмотр событий в реальном времени
+- Редактирование текста событий
+- Автоматическая загрузка изображений
+- Генерация плаката 2080x1872 пикселей (4 стороны по 520px)
+- Центрированный текст на каждой стороне
+- Маскоты в углу каждой стороны
 
-- Automatic event loading from Wikipedia API
-- Real-time event preview
-- Editable event text
-- Automatic image loading from Wikipedia
-- 2080x1872 pixel poster generation (4 sides)
-- Gradient background and customizable styles
-- Logging system for all operations
-- Backup and restore functionality
+## Использование
 
-## Installation
+### Готовый EXE
 
-### Requirements
+Запустите `HistoricalDisplay.exe`:
+1. Выберите дату (день и месяц)
+2. Нажмите "Загрузить" для получения событий
+3. Выберите события для каждой из 4 сторон
+4. При необходимости отредактируйте текст
+5. Нажмите "Сохранить изображение"
 
-- Python 3.8+
-- tkinter (included in Python standard library)
-- Pillow: `pip install Pillow`
-- requests: `pip install requests`
-
-### Quick Start
+### Python скрипт (альтернатива)
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/historical-display.git
-cd historical-display
-
-# Install dependencies
-pip install Pillow requests
-
-# Run the application
-python historical_display_gui.py
+python four_sided_display.py <месяц> <день>
 ```
 
-Or use the pre-built executable:
-```
-dist/HistoricalDisplay.exe
+Пример:
+```bash
+python four_sided_display.py 4 13
 ```
 
-## Project Structure
+## Структура проекта
 
 ```
-historical-display/
-├── historical_display_gui.py  # Main application file
-├── logging_config.py          # Logging configuration
-├── backup.py                  # Backup/restore script
-├── LICENSE                    # MIT License
-├── README.md                  # This file
-├── requirements.txt           # Python dependencies
-├── Маскот/                   # Mascot images
+История/
+├── HistoricalDisplay.exe     # Готовый EXE с GUI
+├── four_sided_display.py     # Скрипт командной строки
+├── generate_cli.py          # Упрощенный CLI скрипт
+├── historical_display_gui.py # Исходник GUI (для разработки)
+├── IskraCYR-BoldItalic.otf   # Шрифт
+├── Маскот/                   # Изображения масок
 │   ├── tsvet_21.png
 │   ├── tsvet_23.png
-│   ├── tsvet_25.png
-│   └── tsvet_27.png
-└── dist/                     # Compiled executables
+│   ├── tsvet_28.png
+│   └── tsvet_30.png
+└── final/                    # Готовые файлы для GitHub
 ```
 
-## Usage
-
-### 1. Select Date
-
-1. Enter day and month
-2. Click "Загрузить" (Load)
-3. System will load up to 100 events from Wikipedia
-
-### 2. Select Events
-
-For each of 4 sides:
-1. Select event from dropdown
-2. Edit text if needed in input field
-3. Click "Загр" to load images
-
-### 3. Generate Poster
-
-1. Click "Сохранить изображение" (Save Image)
-2. Choose save folder
-3. File will be saved as `история_DD_MM.png`
-
-## Backup Commands
-
-```bash
-# Create backup
-python backup.py create
-
-# List backups
-python backup.py list
-
-# Restore from backup
-python backup.py restore historical_display_backup_YYYYMMDD_HHMMSS.zip
-```
-
-## Generated Poster Structure
+## Структура генерируемого плаката
 
 ```
 ┌─────────┬─────────┬─────────┬─────────┐
-│         │         │         │         │
-│  Date   │  Date   │  Date   │  Date   │
-│  This   │  This   │  This   │  This   │
-│  day    │  day    │  day    │  day    │
-│in history│in history│in history│in history│
+│  Дата   │  Дата   │  Дата   │  Дата   │
+│  Этот   │  Этот   │  Этот   │  Этот   │
+│  день   │  день   │  день   │  день   │
+│ в истории│в истории│в истории│в истории│
 ├─────────┼─────────┼─────────┼─────────┤
-│         │         │         │         │
-│  Year   │  Year   │  Year   │  Year   │
-│         │         │         │         │
+│   Год   │   Год   │   Год   │   Год   │
 ├─────────┼─────────┼─────────┼─────────┤
-│         │         │         │         │
-│  Event  │  Event  │  Event  │  Event  │
-│  Text   │  Text   │  Text   │  Text   │
-│         │         │         │         │
+│  Текст  │  Текст  │  Текст  │  Текст  │
+│  события│  события│  события│  события│
 ├─────────┼─────────┼─────────┼─────────┤
-│         │         │         │         │
-│  Image  │  Image  │  Image  │  Image  │
-│         │         │         │         │
-│[Mascot]│[Mascot]│[Mascot]│[Mascot]│
+│ Изобр.  │ Изобр.  │ Изобр.  │ Изобр.  │
+│ [Маскот]│ [Маскот]│ [Маскот]│ [Маскот]│
 └─────────┴─────────┴─────────┴─────────┘
 ```
 
-## Settings
+## Технические характеристики
 
-### Color Scheme
+- **Размер стороны**: 520x1872 пикселей
+- **Общий размер**: 2080x1872 пикселей
+- **Фон**: rgb(35, 54, 61)
+- **Текст**: белый, центрированный
+- **Шрифт**: IskraCYR-BoldItalic.otf
 
-- Start background: `#23363d`
-- End background: `#20B2AA`
-- Text color: white
+## Требования
 
-### Block Sizes
+- Python 3.8+ (для запуска исходников)
+- requests
+- Pillow
+- tkinter (входит в Python)
 
-- Side: 520x1872 pixels
-- Header block: ~520 pixels
-- Year block: ~200 pixels
-- Text block: ~340 pixels
-- Image block: ~800 pixels
-- Line thickness: 4 pixels
+## Известные проблемы
 
-## Building Executable
+На Python 3.14 GUI версия может вылетать через 3-5 секунд из-за бага в Garbage Collector. В этом случае используйте `four_sided_display.py` или `generate_cli.py`.
 
-```bash
-# Install PyInstaller
-pip install pyinstaller
+## Лицензия
 
-# Build executable
-pyinstaller --onefile --windowed --name "HistoricalDisplay" historical_display_gui.py
-```
-
-## Notes
-
-- Wikipedia API provides events from 1500 CE
-- For events BCE, manual input is required
-- Images are loaded from Russian and English Wikipedia
-- Application uses threads for async image loading
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Для образовательных целей.
