@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Инструкция - Генератор исторического дисплея</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #23363d 0%, #1a252a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #4fc3f7;
+            border-bottom: 3px solid #4fc3f7;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        h2 { color: #81d4fa; margin-top: 30px; }
+        h3 { color: #b3e5fc; }
+        .card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            backdrop-filter: blur(10px);
+        }
+        .warning {
+            background: rgba(255,152,0,0.2);
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background: rgba(76,175,80,0.2);
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+        }
+        pre {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        .step-num {
+            background: #4fc3f7;
+            color: #1a252a;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-right: 15px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .feature-item {
+            background: rgba(79,195,247,0.1);
+            border: 1px solid rgba(79,195,247,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .feature-icon { font-size: 32px; margin-bottom: 10px; }
+        .feature-title { color: #4fc3f7; font-weight: bold; margin-bottom: 8px; }
+        .toc {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .toc a {
+            color: #4fc3f7;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        .toc a:hover { text-decoration: underline; }
+        .changelog-item {
+            border-left: 3px solid #4fc3f7;
+            padding-left: 15px;
+            margin: 20px 0;
+        }
+        .changelog-date { color: #81d4fa; font-size: 0.9em; }
+        .changelog-version { 
+            background: #4fc3f7; 
+            color: #1a252a; 
+            padding: 2px 10px; 
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+        .interactive-demo {
+            background: linear-gradient(145deg, #2a3f47, #23363d);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .btn {
+            background: #4fc3f7;
+            color: #1a252a;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #81d4fa;
+            transform: scale(1.05);
+        }
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid #4fc3f7;
+            color: #4fc3f7;
+        }
+        .btn-secondary:hover {
+            background: rgba(79,195,247,0.2);
+        }
+        .color-picker-demo {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        .color-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .color-box:hover { transform: scale(1.1); }
+        .image-placeholder {
+            background: rgba(0,0,0,0.3);
+            border: 2px dashed #4fc3f7;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            color: #81d4fa;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid rgba(79,195,247,0.3);
+            margin: 20px 0;
+        }
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #b3e5fc;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background: rgba(79,195,247,0.2);
+            color: #4fc3f7;
+            border-bottom: 3px solid #4fc3f7;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        details {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        summary {
+            padding: 15px;
+            cursor: pointer;
+            color: #4fc3f7;
+            font-weight: bold;
+        }
+        details[open] summary {
+            border-bottom: 1px solid rgba(79,195,247,0.3);
+        }
+        .faq-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        .faq-q { color: #4fc3f7; font-weight: bold; margin-bottom: 8px; }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #81d4fa;
+        }
+    </style>
+</head>
+<body>
+    <h1>📜 Генератор исторического дисплея</h1>
+    
+    <div class="toc">
+        <h3>📋 Содержание</h3>
+        <a href="#about">О программе</a>
+        <a href="#features">Возможности</a>
+        <a href="#howtouse">Как пользоваться</a>
+        <a href="#structure">Структура изображения</a>
+        <a href="#changelog">История изменений</a>
+        <a href="#faq">Вопросы и ответы</a>
+    </div>
+
+    <div class="card" id="about">
+        <h2>📌 О программе</h2>
+        <p><strong>Генератор исторического дисплея</strong> — это приложение для создания изображений к LED-экрану на колонне.</p>
+        <p>Программа формирует <strong>4-стороннее изображение</strong> (2080×1872 пикселя), где каждая сторона (520×1872) показывает событие из одного и того же дня, но разных годов (до 2000 года).</p>
+        
+        <div class="warning">
+            <strong>⚠️ Важно:</strong> Программа работает только с Windows. Для запуска используйте файл <code>HistoricalDisplay.exe</code> из папки <code>final</code>.
+        </div>
+    </div>
+
+    <div class="card" id="features">
+        <h2>✨ Возможности</h2>
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon">🌐</div>
+                <div class="feature-title">Wikipedia API</div>
+                <p>Автоматическая загрузка исторических событий с Википедии</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🎨</div>
+                <div class="feature-title">Предпросмотр</div>
+                <p>4 панели предпросмотра всех сторон одновременно</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">✏️</div>
+                <div class="feature-title">Редактирование</div>
+                <p>Возможность вручную изменить год и текст события</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🖼️</div>
+                <div class="feature-title">Изображения</div>
+                <p>Загрузка картинок для каждого события</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📱</div>
+                <div class="feature-title">Маскоты</div>
+                <p>Автоматическое добавление масок в угол</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📏</div>
+                <div class="feature-title">Автоподбор шрифта</div>
+                <p>Размер текста подбирается автоматически</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" id="howtouse">
+        <h2>📖 Как пользоваться</h2>
+        
+        <h3>Запуск программы</h3>
+        <div class="step">
+            <div class="step-num">1</div>
+            <div>Найдите файл <code>HistoricalDisplay.exe</code> в папке <code>final</code> и запустите его двойным щелчком.</div>
+        </div>
+
+        <h3>Выбор даты</h3>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div>В левой панели управления выберите месяц и день, для которых хотите найти исторические события.</div>
+        </div>
+
+        <h3>Поиск событий</h3>
+        <div class="step">
+            <div class="step-num">3</div>
+            <div>Нажмите кнопку <button class="btn" style="padding: 8px 15px; font-size: 14px;">🔍 Найти события</button> Программа загрузит события с Wikipedia и автоматически выберет 4 года (до 2000).</div>
+        </div>
+
+        <h3>Редактирование</h3>
+        <div class="step">
+            <div class="step-num">4</div>
+            <div>При необходимости измените год и текст события в полях предпросмотра. Также можно загрузить свои изображения для каждой стороны.</div>
+        </div>
+
+        <h3>Предпросмотр</h3>
+        <div class="step">
+            <div class="step-num">5</div>
+            <div>Справа отображаются 4 панели с предпросмотром каждой стороны. Прокрутка — по горизонтали.</div>
+        </div>
+
+        <h3>Сохранение</h3>
+        <div class="step">
+            <div class="step-num">6</div>
+            <div>Нажмите <button class="btn" style="padding: 8px 15px; font-size: 14px;">💾 Сохранить</button> для сохранения итогового изображения.</div>
+        </div>
+
+        <div class="success">
+            <strong>💡 Совет:</strong> Если нужно переделать — просто измените данные и нажмите "Сохранить" снова. Изображение перегенерируется.
+        </div>
+    </div>
+
+    <div class="card" id="structure">
+        <h2>🖼️ Структура изображения</h2>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="openTab('side')">Сторона</button>
+            <button class="tab" onclick="openTab('full')">Полное</button>
+        </div>
+
+        <div id="side" class="tab-content active">
+            <h3>Одна сторона (520×1872)</h3>
+            <div class="image-placeholder">
+                <p>📐 Блок 1 (верх): дата + "этот день в истории"</p>
+                <p>📐 Блок 2: год события</p>
+                <p>📐 Блок 3: текст события + изображение</p>
+                <p>📐 Маскот в правом нижнем углу</p>
+            </div>
+        </div>
+
+        <div id="full" class="tab-content">
+            <h3>Полное изображение (2080×1872)</h3>
+            <div class="image-placeholder">
+                <p>4 стороны по 520px расположены горизонтально</p>
+                <p>→ Сторона 1 | Сторона 2 | Сторона 3 | Сторона 4 ←</p>
+            </div>
+        </div>
+
+        <h3>Цветовая схема</h3>
+        <div class="color-picker-demo">
+            <div class="color-box" style="background: rgb(35,54,61);">Фон</div>
+            <div class="color-box" style="background: #ffffff; color: #23363d;">Текст</div>
+            <div class="color-box" style="background: #ff6b6b;">Акцент 1</div>
+            <div class="color-box" style="background: #4ecdc4;">Акцент 2</div>
+        </div>
+    </div>
+
+    <div class="card" id="interactive">
+        <h2>🎮 Интерактивный пример</h2>
+        <p>Попробуйте изменить параметры и посмотрите результат:</p>
+        
+        <div class="interactive-demo">
+            <label>
+                Месяц: 
+                <select id="demoMonth" style="padding: 8px; border-radius: 5px; background: #2a3f47; color: #e0e0e0; border: 1px solid #4fc3f7;">
+                    <option value="4">Апрель</option>
+                    <option value="1">Январь</option>
+                    <option value="2">Февраль</option>
+                    <option value="3">Март</option>
+                    <option value="5">Май</option>
+                    <option value="6">Июнь</option>
+                    <option value="7">Июль</option>
+                    <option value="8">Август</option>
+                    <option value="9">Сентябрь</option>
+                    <option value="10">Октябрь</option>
+                    <option value="11">Ноябрь</option>
+                    <option value="12">Декабрь</option>
+                </select>
+            </label>
+            <label>
+                День: 
+                <input type="number" id="demoDay" value="21" min="1" max="31" style="padding: 8px; border-radius: 5px; background: #2a3f47; color: #e0e0e0; border: 1px solid #4fc3f7; width: 60px;">
+            </label>
+            <br><br>
+            <button class="btn" onclick="alert('В реальной программе здесь будет загрузка событий с Wikipedia API!')">🔍 Загрузить события</button>
+            <button class="btn btn-secondary" onclick="alert('Откроется диалог выбора файлов для загрузки изображений')">🖼️ Загрузить изображение</button>
+            <br><br>
+            <details>
+                <summary>📝 Пример данных события</summary>
+                <div style="padding: 15px;">
+                    <p><strong>Год:</strong> <input type="text" value="1961" style="background: #2a3f47; color: #e0e0e0; border: 1px solid #4fc3f7; padding: 5px;"></p>
+                    <p><strong>Событие:</strong> <input type="text" value="Юрий Гагарин стал первым человеком в космосе" style="width: 300px; background: #2a3f47; color: #e0e0e0; border: 1px solid #4fc3f7; padding: 5px;"></p>
+                    <button class="btn" style="padding: 5px 10px; font-size: 12px;">💾 Сохранить</button>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <div class="card" id="changelog">
+        <h2>📜 История изменений</h2>
+        
+        <div class="changelog-item">
+            <span class="changelog-date">21 апреля 2026</span>
+            <span class="changelog-version">v1.6</span>
+            <ul>
+                <li>Увеличен размер шрифта для событий (диапазон 120→20)</li>
+                <li>Шрифт и маскоты упакованы в EXE</li>
+                <li>Добавлена инструкция</li>
+            </ul>
+        </div>
+
+        <div class="changelog-item">
+            <span class="changelog-date">20 апреля 2026</span>
+            <span class="changelog-version">v1.5</span>
+            <ul>
+                <li>Исправлена ошибка с отображением года</li>
+                <li>Улучшен интерфейс: соотношение 2:3 между панелями</li>
+                <li>4 предпросмотра в ряд</li>
+                <li>Исправлена ошибка с индексом масок</li>
+            </ul>
+        </div>
+
+        <div class="changelog-item">
+            <span class="changelog-date">13 апреля 2026</span>
+            <span class="changelog-version">v1.4</span>
+            <ul>
+                <li>Создан EXE с графическим интерфейсом (GUI)</li>
+                <li>Исправлена загрузка шрифта и масок</li>
+                <li>Добавлен блок для текста события</li>
+            </ul>
+        </div>
+
+        <div class="changelog-item">
+            <span class="changelog-date">2 апреля 2026</span>
+            <span class="changelog-version">v1.0</span>
+            <ul>
+                <li>Создан four_sided_display.py — генератор изображений</li>
+                <li>Загрузка событий с Wikipedia API</li>
+                <li>Генерация PNG 2080×1872 (4 стороны по 520px)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card" id="faq">
+        <h2>❓ Вопросы и ответы</h2>
+        
+        <div class="faq-item">
+            <div class="faq-q">Почему программа не запускается?</div>
+            <div>Убедитесь, что файл <code>HistoricalDisplay.exe</code> находится в папке <code>final</code> вместе со шрифтом <code>IskraCYR-BoldItalic.otf</code> и папкой <code>Маскот</code>.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">Где взять шрифт?</div>
+            <div>Шрифт <code>IskraCYR-BoldItalic.otf</code> должен быть в той же папке, что и EXE. Если его нет — скопируйте из исходного архива.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">Почему текст на русском отображается неправильно?</div>
+            <div>Программа использует шрифт Iskra CYR. Убедитесь, что он загружен. Для резервного копирования используется Arial.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">Как изменить маскот?</div>
+            <div>Маскоты назначаются автоматически: сторона 1 → tsvet_21, сторона 2 → tsvet_23, сторона 3 → tsvet_28, сторона 4 → tsvet_30. Изменить их пока можно только в исходном коде.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">Почему выбираются только годы до 2000?</div>
+            <div>Программа специально настроена на исторические события советского и постсоветского периода, поэтому фильтрует годы старше 2000.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">Как добавить своё изображение?</div>
+            <div>Нажмите кнопку с иконкой изображения рядом с нужной стороной в предпросмотре. Откроется диалог выбора файла.</div>
+        </div>
+    </div>
+
+    <footer>
+        <p>📧 GitHub: <a href="https://github.com/Altersam/Historical-Display-Generator" style="color: #4fc3f7;">Altersam/Historical-Display-Generator</a></p>
+        <p>© 2026 Генератор исторического дисплея</p>
+    </footer>
+
+    <script>
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
