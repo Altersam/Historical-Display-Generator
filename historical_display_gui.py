@@ -367,6 +367,7 @@ class HistoricalDisplayApp:
                     merged.append({
                         'year': year,
                         'text': event.get('text', ''),
+                        'pages': event.get('pages', []),
                         'type': 'event'
                     })
             
@@ -376,6 +377,7 @@ class HistoricalDisplayApp:
                     merged.append({
                         'year': year,
                         'text': birth.get('text', ''),
+                        'pages': birth.get('pages', []),
                         'type': 'birth'
                     })
             
