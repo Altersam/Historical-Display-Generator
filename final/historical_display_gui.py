@@ -72,7 +72,6 @@ class HistoricalDisplayApp:
         
         # Data storage
         self.events_data = {}
-        self.births_data = {}
         self.current_date = datetime.datetime.now()
         self.sides_data = [
             {'year': '', 'event': '', 'image_url': '', 'image': None, 'custom_image': None, 'mascot': None, 'custom_mascot': None},
@@ -153,8 +152,7 @@ class HistoricalDisplayApp:
         self.month_var = tk.StringVar(value=str(self.current_date.month))
         ttk.Combobox(date_inner, textvariable=self.month_var, values=[str(i) for i in range(1, 13)], width=3).grid(row=0, column=3, padx=1)
         
-        tk.Button(date_inner, text="События", command=self.load_events, bg="#4a6fa5", fg="white", font=("Arial", 12)).grid(row=0, column=7, padx=2)
-        tk.Button(date_inner, text="Персоны", command=self.load_births, bg="#6a4fa5", fg="white", font=("Arial", 12)).grid(row=0, column=8, padx=2)
+        tk.Button(date_inner, text="Загрузить", command=self.load_events, bg="#4a6fa5", fg="white", font=("Arial", 12)).grid(row=0, column=7, padx=2)
         
         self.status_label = tk.Label(date_frame, text="Выберите дату", fg="#aaaaaa", bg="#23363d", font=("Arial", 12))
         self.status_label.pack()
@@ -335,7 +333,7 @@ class HistoricalDisplayApp:
         self.sides_data[side_num]['status_label'].pack(side=tk.LEFT, padx=2)
         
     def load_events(self):
-        """Load events for selected date."""
+        """Load events and births for selected date."""
         try:
             day = int(self.day_var.get())
             month = int(self.month_var.get())
@@ -343,27 +341,50 @@ class HistoricalDisplayApp:
             messagebox.showerror("Ошибка", "Неверный формат даты")
             return
         
-        self.status_label.config(text="Загрузка событий...")
+        self.status_label.config(text="Загрузка данных...")
         
-        # Fetch events from Wikipedia
-        url = f"https://ru.wikipedia.org/api/rest_v1/feed/onthisday/events/{month:02d}/{day:02d}"
+        events_url = f"https://ru.wikipedia.org/api/rest_v1/feed/onthisday/events/{month:02d}/{day:02d}"
+        births_url = f"https://ru.wikipedia.org/api/rest_v1/feed/onthisday/births/{month:02d}/{day:02d}"
+        
         try:
-            response = requests.get(url, headers=HEADERS, timeout=15)
-            response.raise_for_status()
-            data = response.json()
-            events = data.get('events', [])
+            events_response = requests.get(events_url, headers=HEADERS, timeout=15)
+            events_response.raise_for_status()
+            events_data = events_response.json()
+            events = events_data.get('events', [])
             
-            # Filter for events before current year
+            births_response = requests.get(births_url, headers=HEADERS, timeout=15)
+            births_response.raise_for_status()
+            births_data = births_response.json()
+            births = births_data.get('births', [])
+            
+            # Filter and merge
             current_year = datetime.datetime.now().year
-            filtered_events = []
-            for event in events:
-                event_year = event.get('year')
-                if event_year and isinstance(event_year, int) and event_year <= current_year:
-                    filtered_events.append(event)
+            merged = []
             
-            # Store events (max 100)
+            for event in events:
+                year = event.get('year')
+                if year and isinstance(year, int) and year <= current_year:
+                    merged.append({
+                        'year': year,
+                        'text': event.get('text', ''),
+                        'type': 'event'
+                    })
+            
+            for birth in births:
+                year = birth.get('year')
+                if year and isinstance(year, int) and year <= current_year:
+                    merged.append({
+                        'year': year,
+                        'text': birth.get('text', ''),
+                        'type': 'birth'
+                    })
+            
+            # Sort by year
+            merged.sort(key=lambda x: x['year'])
+            
+            # Store (max 200)
             date_key = f"{month:02d}_{day:02d}"
-            self.events_data[date_key] = filtered_events[:100]
+            self.events_data[date_key] = merged[:200]
             
             # Update dropdowns for each side
             for i in range(4):
@@ -374,52 +395,7 @@ class HistoricalDisplayApp:
                 if event_list:
                     self.sides_data[i]['event_combo'].current(0)
             
-            self.status_label.config(text=f"Загружено {len(filtered_events[:100])} событий")
-            
-        except Exception as e:
-            self.status_label.config(text=f"Ошибка загрузки: {str(e)}")
-            
-    def load_births(self):
-        """Load births (people born on this date) from Wikipedia."""
-        try:
-            day = int(self.day_var.get())
-            month = int(self.month_var.get())
-        except ValueError:
-            messagebox.showerror("Ошибка", "Неверный формат даты")
-            return
-        
-        self.status_label.config(text="Загрузка персон...")
-        
-        # Fetch births from Wikipedia
-        url = f"https://ru.wikipedia.org/api/rest_v1/feed/onthisday/births/{month:02d}/{day:02d}"
-        try:
-            response = requests.get(url, headers=HEADERS, timeout=15)
-            response.raise_for_status()
-            data = response.json()
-            births = data.get('births', [])
-            
-            # Filter for births before current year
-            current_year = datetime.datetime.now().year
-            filtered_births = []
-            for birth in births:
-                birth_year = birth.get('year')
-                if birth_year and isinstance(birth_year, int) and birth_year <= current_year:
-                    filtered_births.append(birth)
-            
-            # Store births (max 100)
-            date_key = f"{month:02d}_{day:02d}"
-            self.births_data[date_key] = filtered_births[:100]
-            
-            # Update dropdowns for each side
-            for i in range(4):
-                birth_list = [f"{b.get('year', '???')} - {b.get('text', 'Персона')[:50]}..." 
-                             for b in self.births_data[date_key]]
-                birth_list.insert(0, "Ввести вручную...")
-                self.sides_data[i]['event_combo']['values'] = birth_list
-                if birth_list:
-                    self.sides_data[i]['event_combo'].current(0)
-            
-            self.status_label.config(text=f"Загружено {len(filtered_births[:100])} персон")
+            self.status_label.config(text=f"Загружено {len(merged[:200])} записей")
             
         except Exception as e:
             self.status_label.config(text=f"Ошибка загрузки: {str(e)}")
@@ -433,22 +409,10 @@ class HistoricalDisplayApp:
                 event_text = self.sides_data[side_num].get('edited_event_text', '')
             else:
                 date_key = f"{int(self.month_var.get()):02d}_{int(self.day_var.get()):02d}"
-                # Check events first, then births
                 if date_key in self.events_data and idx-1 < len(self.events_data[date_key]):
-                    event = self.events_data[date_key][idx-1]
-                    year = event.get('year', '')
-                    event_text = event.get('text', '')
-                    self.sides_data[side_num]['year_var'].set(str(year))
-                    
-                    # Clear edited text when selecting from dropdown
-                    self.sides_data[side_num]['edited_event_text'] = ''
-                    
-                    # Auto-load images asynchronously
-                    self.load_images_async(side_num)
-                elif date_key in self.births_data and idx-1 < len(self.births_data[date_key]):
-                    birth = self.births_data[date_key][idx-1]
-                    year = birth.get('year', '')
-                    event_text = birth.get('text', '')
+                    item = self.events_data[date_key][idx-1]
+                    year = item.get('year', '')
+                    event_text = item.get('text', '')
                     self.sides_data[side_num]['year_var'].set(str(year))
                     
                     # Clear edited text when selecting from dropdown
@@ -896,11 +860,8 @@ class HistoricalDisplayApp:
                 all_texts.append(edited_text)
             elif event_idx > 0:
                 date_key = f"{month:02d}_{day:02d}"
-                # Check events first, then births
                 if date_key in self.events_data and event_idx-1 < len(self.events_data[date_key]):
                     all_texts.append(self.events_data[date_key][event_idx-1].get('text', ''))
-                elif date_key in self.births_data and event_idx-1 < len(self.births_data[date_key]):
-                    all_texts.append(self.births_data[date_key][event_idx-1].get('text', ''))
         
         # Calculate global font size
         event_font_size = self.calculate_event_font_size(all_texts)
@@ -1012,11 +973,8 @@ class HistoricalDisplayApp:
             event_text = ''
         else:
             date_key = f"{month:02d}_{day:02d}"
-            # Check events first, then births
             if date_key in self.events_data and self.events_data[date_key] and event_idx-1 < len(self.events_data[date_key]):
                 event_text = self.events_data[date_key][event_idx-1].get('text', '')
-            elif date_key in self.births_data and self.births_data[date_key] and event_idx-1 < len(self.births_data[date_key]):
-                event_text = self.births_data[date_key][event_idx-1].get('text', '')
             else:
                 event_text = ''
                 
@@ -1263,11 +1221,8 @@ class HistoricalDisplayApp:
                     all_texts.append(edited_text)
                 elif event_idx > 0:
                     date_key = f"{month:02d}_{day:02d}"
-                    # Check events first, then births
-                    if date_key in self.events_data and self.events_data[date_key] and event_idx-1 < len(self.events_data[date_key]):
+                    if date_key in self.events_data and event_idx-1 < len(self.events_data[date_key]):
                         all_texts.append(self.events_data[date_key][event_idx-1].get('text', ''))
-                    elif date_key in self.births_data and self.births_data[date_key] and event_idx-1 < len(self.births_data[date_key]):
-                        all_texts.append(self.births_data[date_key][event_idx-1].get('text', ''))
             
             # Calculate global font size
             event_font_size = self.calculate_event_font_size(all_texts)
